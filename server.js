@@ -12,21 +12,21 @@ app.get("/", (req, res) => {
 // routing of blog button [published Post Only]
 app.get("/blog", (req, res) => {
   blog.getPublishedPosts()
-  .then(publishedPostArr => { res.send(publishedPostArr); })
+  .then(publishedPostArr => { res.json(publishedPostArr); })
   .catch(err => res.send({message: err}));
 })
 
 // routing of post [All Post]
 app.get("/posts", (req, res) => {
   blog.getAllPosts()
-  .then(allPostsArr => { res.send(allPostsArr); })
+  .then(allPostsArr => { res.json(allPostsArr); })
   .catch(err => res.send({message: err}));
 });
 
 // routing of catagories
 app.get("/categories", (req, res) => {
   blog.getCategories()
-  .then(data => { res.send(data) })
+  .then(data => { res.json(data) })
   .catch(err => res.send({message: err}));
 });
 

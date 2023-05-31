@@ -10,7 +10,6 @@
   "author": "On Hei Chau, Paul",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.2",
-    "nodemon": "^2.0.22"
+    "express": "^4.18.2"
   }
 }

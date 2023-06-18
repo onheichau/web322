@@ -87,7 +87,6 @@ app.get("/categories", (req, res) => {
 });
 
 app.get("/posts/add", (req, res) => {
-  console.log("to do");
   res.sendFile(path.join(__dirname, "views", "addPost.html"));
 });
 

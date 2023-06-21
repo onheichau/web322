@@ -228,7 +228,7 @@
         "id": 26,
         "body": "Why don't scientists trust atoms? Because they make up everything!",
         "title": "Atoms Unveiled: Journey into the Subatomic Realm",
-        "postDate": "2023-02-28",
+        "postDate": "2022-02-28",
         "category": 3,
         "featureImage": "https://dummyimage.com/847x320/d9d9d9/545454.jpg",
         "published": false
@@ -237,7 +237,7 @@
         "id": 27,
         "body": "Why did the math book look sad? Because it had too many problems!",
         "title": "Math Magic: Unlocking the Secrets of Numbers",
-        "postDate": "2023-06-09",
+        "postDate": "2022-06-09",
         "category": 1,
         "featureImage": "https://dummyimage.com/847x320/d9d9d9/545454.jpg",
         "published": true
@@ -246,7 +246,7 @@
         "id": 28,
         "body": "Why did the scarecrow win an award? Because he was outstanding in his field!",
         "title": "The Scarecrow's Triumph: Tales of Excellence and Adventure",
-        "postDate": "2023-08-25",
+        "postDate": "2022-08-25",
         "category": 4,
         "featureImage": "https://dummyimage.com/847x320/d9d9d9/545454.jpg",
         "published": true
@@ -255,7 +255,7 @@
         "id": 29,
         "body": "Why don't skeletons fight each other? They don't have the guts!",
         "title": "Skeleton Showdown: The Battle of the Bones",
-        "postDate": "2023-10-12",
+        "postDate": "2022-10-12",
         "category": 2,
         "featureImage": "https://dummyimage.com/847x320/d9d9d9/545454.jpg",
         "published": false
@@ -264,7 +264,7 @@
         "id": 30,
         "body": "Why did the bicycle fall over? Because it was two-tired!",
         "title": "Wheels and Adventures: Exploring the World on Two Tires",
-        "postDate": "2023-12-01",
+        "postDate": "2022-12-01",
         "category": 1,
         "featureImage": "https://dummyimage.com/847x320/d9d9d9/545454.jpg",
         "published": true

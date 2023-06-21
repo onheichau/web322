@@ -84,6 +84,10 @@ app.get("/", (req, res) => {
   res.redirect("/blog");
 });
 
+app.get("/about", (req, res) => {
+  res.render(path.join(__dirname, "views", "layouts", "about"));
+})
+
 // routing of blog button [published Post Only]
 app.get("/blog", async (req, res) => {
   // Declare an object to store properties for the view

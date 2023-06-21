@@ -5,11 +5,10 @@
 
     {{#each posts}}
       <div class="card">
-        <h5 class="card-title">{{this.title}}</h5>
+        <a href="/blog/{{id}}">{{title}}</a>
       </div>
     {{else}}
       <div> {{this.message}} </div>
     {{/each}}
-
   </div>
 </div>

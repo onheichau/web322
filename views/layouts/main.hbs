@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -13,7 +12,7 @@
     />
     <link rel="stylesheet" href="/css/main.css" />
 
-    <title>WEB322 - Assignment Template</title>
+    <title>Paul's Blog</title>
   </head>
   <body>
     <nav class="navbar navbar-default navbar-fixed-top">
@@ -38,13 +37,13 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav">
-            <li><a href="/blog">Blog</a></li>
-            <li class="active"><a href="/about">About</a></li>
+            {{#navLink "/blog"}}Blog{{/navLink}}
+            {{#navLink "/about"}}About{{/navLink}}
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="/posts">Posts</a></li>
-            <li><a href="/categories">Categories</a></li>
-            <li><a href="/posts/add">Add Post</a></li>
+            {{#navLink "/posts"}}Posts{{/navLink}}
+            {{#navLink "/categories"}}Categories{{/navLink}}
+            {{#navLink "/posts/add"}}Add Post{{/navLink}}
           </ul>
         </div>
         <!-- /.navbar-collapse -->
@@ -52,10 +51,7 @@
       <!-- /.container-fluid -->
     </nav>
     <div class="container" style="padding-top: 60px">
-      <div class="row">
-        <section class="main col-md-9"></section>
-        <aside class="col-md-3"></aside>
-      </div>
+      {{{body}}}
     </div>
 
     <!-- Latest compiled and minified jQuery 3.6.0 JavaScript -->

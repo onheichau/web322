@@ -71,6 +71,20 @@ const getPostByCategory = (categoryId) => {
   });
 };
 
+const getPublishedPostsByCategory = (category) => {
+  return new Promise((resolve, reject) => {
+    let publishedAndCategorizedPost = [];
+    if (posts.length) {
+      publishedAndCategorizedPost = posts.filter(
+        (ele) => ele.published && ele.category == category
+      );
+    }
+    publishedAndCategorizedPost.length
+      ? resolve(publishedAndCategorizedPost)
+      : reject(new Error("no posts found"));
+  });
+};
+
 const getPostByMinDate = (date) => {
   return new Promise((resolve, reject) => {
     if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
@@ -122,5 +136,7 @@ module.exports = {
   addPost,
   getPostByCategory,
   getPostByMinDate,
+  getPostById,
+  getPublishedPostsByCategory,
   getPostById,
 };

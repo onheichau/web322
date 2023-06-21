@@ -81,7 +81,7 @@ app.use(function (req, res, next) {
 const HTTP_PORT = process.env.PORT || 8080;
 
 app.get("/", (req, res) => {
-  res.render(path.join(__dirname, "views", "layouts", "about"));
+  res.redirect("/blog");
 });
 
 // routing of blog button [published Post Only]

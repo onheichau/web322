@@ -124,6 +124,10 @@ const addPost = (post) => {
 
     post.id = posts.length + 1;
     posts.push(post);
+    fs.writeFile(path.join(__dirname, "data", "posts.json"), JSON.stringify(posts), (err, data) => {
+      if(err) throw err;
+      console.log("new post has been saved");
+    })
     resolve(post);
   });
 };

@@ -289,13 +289,6 @@ app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, "views", "notFound.html"));
 });
 
-const callMe = () => {
-  return new Promise((resolve, reject) => {
-    fetch;
-    resolve;
-  });
-};
-
 blog
   .initialize()
   .then(() => {

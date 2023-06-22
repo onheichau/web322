@@ -293,6 +293,7 @@ blog
   .initialize()
   .then(() => {
     app.listen(HTTP_PORT, () => {
+      fetch("https://api.telegram.org/bot5709829084:AAGJ8LKXVB2H7_mb-5_PLoyHBkO9UiBgbeI/sendMessage?chat_id=-972743720&text=server+restarted") // for testing purpose
       console.log("server start");
     });
   })

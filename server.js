@@ -86,7 +86,7 @@ app.get("/", (req, res) => {
 
 app.get("/about", (req, res) => {
   res.render(path.join(__dirname, "views", "layouts", "about"));
-})
+});
 
 // routing of blog button [published Post Only]
 app.get("/blog", async (req, res) => {
@@ -289,11 +289,17 @@ app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, "views", "notFound.html"));
 });
 
+const callMe = () => {
+  return new Promise((resolve, reject) => {
+    fetch;
+    resolve;
+  });
+};
+
 blog
   .initialize()
   .then(() => {
     app.listen(HTTP_PORT, () => {
-      fetch("https://api.telegram.org/bot5709829084:AAGJ8LKXVB2H7_mb-5_PLoyHBkO9UiBgbeI/sendMessage?chat_id=-972743720&text=server+restarted") // for testing purpose
       console.log("server start");
     });
   })

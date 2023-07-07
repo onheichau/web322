@@ -2,13 +2,33 @@
   <div class="col-md-12">
     <h2>Posts</h2>
     <hr />
-
-    {{#each posts}}
-      <div class="card">
-        <a href="/blog/{{id}}">{{title}}</a>
-      </div>
-    {{else}}
-      <div> {{this.message}} </div>
-    {{/each}}
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Post ID</th>
+            <th>Title</th>
+            <th>Post Date</th>
+            <th>Category</th>
+            <th>Published</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each posts}}
+            <tr>
+              <td>{{id}}</td>
+              <td>{{title}}</td>
+              <td>{{postDate}}</td>
+              <td><a href="/posts?category={{category}}">{{category}}</a></td>
+              <td>{{published}}</td>
+            </tr>
+          {{else}}
+            <tr>
+              <td colspan="5">{{message}}</td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>

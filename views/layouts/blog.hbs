@@ -37,7 +37,7 @@
 
         <ul class="list-group">
           {{#each data.posts}}
-          <a href="/blog/{{id}}?category={{../viewingCategory}}" class="list-group-item">Post {{id}}</a>
+          <a href="/blog/{{id}}?category={{../viewingCategory}}" class="list-group-item">{{title}}</a>
           {{/each}}
         </ul>
   {{/if}}

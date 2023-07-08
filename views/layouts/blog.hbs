@@ -11,7 +11,7 @@
         />
         <br /><br />
         <div>
-          {{data.post.body}}
+          {{#safeHTML data.post.body}}{{/safeHTML}}
         </div>
         <br /><br />
         <strong>category:</strong>

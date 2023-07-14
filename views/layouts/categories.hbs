@@ -1,6 +1,7 @@
 <div class="row">
   <div class="col-md-12">
-    <h2>Categories</h2>
+    <h2>Categories
+      <a href="/categories/add" class="btn btn-success pull-right">Add Category</a></h2>
     <hr />
 
     {{#if data}}
@@ -15,10 +16,12 @@
           <tbody>
             {{#each data}}
               <tr>
-                <td><a href="/posts?category={{this.id}}">{{this.id}}</a></td>
+                <td><a href="/posts?category={{id}}">{{id}}</a></td>
+                <td><a href="/posts?category={{id}}">{{category}}</a></td>
                 <td><a
-                    href="/posts?category={{this.id}}"
-                  >{{this.category}}</a></td>
+                    class="btn btn-danger"
+                    href="/categories/delete/{{id}}"
+                  >remove</a></td>
               </tr>
             {{/each}}
           </tbody>

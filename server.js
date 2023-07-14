@@ -17,10 +17,10 @@
 const exphbs = require("express-handlebars");
 const blog = require("./blog-service");
 const path = require("path");
+const stripJs = require("strip-js");
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
-const stripJs = require("strip-js");
 const express = require("express");
 const app = express();
 const upload = multer(); // no { storage: storage } since we are not using disk storage
@@ -52,6 +52,12 @@ app.engine(
       },
       safeHTML: (context) => {
         return stripJs(context);
+      },
+      formatDate: function (dateObj) {
+        let year = dateObj.getFullYear();
+        let month = (dateObj.getMonth() + 1).toString();
+        let day = dateObj.getDate().toString();
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
       },
     },
   })
@@ -114,6 +120,11 @@ app.get("/blog", async (req, res) => {
 
     // store the "posts" and "post" data in the viewData object (to be passed to the view)
     viewData.posts = posts;
+
+    posts.forEach((po) => {
+      po.postDate = po.postDate.toISOString().slice(0, 10);
+    });
+
     viewData.post = post;
   } catch (err) {
     viewData.message = "no results";
@@ -196,7 +207,18 @@ app.get("/posts", (req, res) => {
 
   postOperation
     .then((posts) => {
-      res.render(path.join(__dirname, "views", "layouts", "posts"), { posts });
+      if (posts.length) {
+        posts.forEach((post) => {
+          post.postDate = post.postDate.toISOString().slice(0, 10);
+        });
+        res.render(path.join(__dirname, "views", "layouts", "posts"), {
+          posts,
+        });
+      } else {
+        res.render(path.join(__dirname, "views", "layouts", "posts"), {
+          message: "no results",
+        });
+      }
     })
     .catch((err) => {
       res.send({ message: err });
@@ -218,10 +240,14 @@ app.get("/post/:id", (req, res) => {
 app.get("/categories", (req, res) => {
   blog
     .getCategories()
-    .then((category) => {
-      res.render(path.join(__dirname, "views", "layouts", "categories"), {
-        data: category,
-      });
+    .then((categoryList) => {
+      categoryList.length
+        ? res.render(path.join(__dirname, "views", "layouts", "categories"), {
+            data: categoryList,
+          })
+        : res.render(path.join(__dirname, "views", "layouts", "categories"), {
+            message: "no results",
+          });
     })
     .catch((err) => {
       res.render(path.join(__dirname, "views", "layouts", "category"), {
@@ -230,8 +256,42 @@ app.get("/categories", (req, res) => {
     });
 });
 
+app.get("/categories/add", (req, res) => {
+  res.render(path.join(__dirname, "views", "layouts", "addCategory"));
+});
+
+app.post("/categories/add", upload.none(), (req, res) => {
+  console.log(req.body);
+  console.log(req.body.category);
+  blog
+    .addCategroy(req.body.category)
+    .then((msg) => {
+      console.log(msg);
+      res.redirect("/categories");
+    })
+    .catch((err) => {
+      res.status(505).send({ message: err });
+    });
+});
+
+app.get("/categories/delete/:id", (req, res) => {
+  blog
+    .deleteCategoryById(req.params.id)
+    .then(() => {
+      res.redirect("/categories");
+    })
+    .catch(() => {
+      res.status(500).send("Unable to Remove Category / Category not found");
+    });
+});
+
 app.get("/posts/add", (req, res) => {
-  res.render(path.join(__dirname, "views", "layouts", "addPost.hbs"));
+  blog.getCategories().then((categoryList) => {
+    console.log(categoryList);
+    res.render(path.join(__dirname, "views", "layouts", "addPost.hbs"), {
+      data: categoryList,
+    });
+  });
 });
 
 // Form submission handling
@@ -270,12 +330,12 @@ app.post("/posts/add", upload.single("featureImage"), (req, res) => {
   function processPost(imageUrl) {
     return new Promise((resolve, reject) => {
       const post = {};
-      post.featureImage = imageUrl;
-      post.body = req.body.body;
-      post.title = req.body.title;
-      post.postDate = new Date().toISOString().slice(0, 10);
-      post.category = req.body.category;
-      post.published = req.body.published;
+      post.body = req.body.body || null;
+      post.title = req.body.title || null;
+      post.featureImage = imageUrl || null;
+      post.postDate = new Date();
+      post.published = !!req.body.published;
+      post.categoryId = Number(req.body.category);
 
       blog.addPost(post).then((post) => {
         resolve(post);
@@ -284,10 +344,23 @@ app.post("/posts/add", upload.single("featureImage"), (req, res) => {
   }
 });
 
+app.get("/posts/delete/:id", (req, res) => {
+  blog
+    .deletePostById(req.params.id)
+    .then(() => {
+      res.redirect("/posts");
+    })
+    .catch(() => {
+      res.status(500).send("Unable to Remove Post / Post not found");
+    });
+});
+
 // 404 handling
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, "views", "notFound.html"));
 });
+
+// use(express.urlencoded({ :true}))
 
 blog
   .initialize()

@@ -11,6 +11,7 @@
             <th>Post Date</th>
             <th>Category</th>
             <th>Published</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -19,8 +20,14 @@
               <td>{{id}}</td>
               <td>{{title}}</td>
               <td>{{postDate}}</td>
-              <td><a href="/posts?category={{category}}">{{category}}</a></td>
+              <td><a
+                  href="/posts?category={{categoryId}}"
+                >{{categoryId}}</a></td>
               <td>{{published}}</td>
+              <td><a
+                  class="btn btn-danger"
+                  href="/posts/delete/{{id}}"
+                >remove</a></td>
             </tr>
           {{else}}
             <tr>

@@ -15,7 +15,7 @@
         </div>
         <br /><br />
         <strong>category:</strong>
-        <span>{{data.post.category}}</span>
+        <span>{{data.post.categoryId}}</span>
         <br />
         <strong>last updated:</strong>
         <span>
@@ -37,7 +37,7 @@
 
         <ul class="list-group">
           {{#each data.posts}}
-          <a href="/blog/{{id}}?category={{../viewingCategory}}" class="list-group-item">{{title}}</a>
+          <a href="/blog/{{id}}?category={{categoryId}}" class="list-group-item">{{title}}</a>
           {{/each}}
         </ul>
   {{/if}}

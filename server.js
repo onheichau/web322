@@ -263,8 +263,6 @@ app.get("/categories/add", (req, res) => {
 });
 
 app.post("/categories/add", upload.none(), (req, res) => {
-  console.log(req.body);
-  console.log(req.body.category);
   blog
     .addCategroy(req.body.category)
     .then((msg) => {
@@ -361,8 +359,6 @@ app.get("/posts/delete/:id", (req, res) => {
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, "views", "notFound.html"));
 });
-
-// use(express.urlencoded({ :true}))
 
 blog
   .initialize()

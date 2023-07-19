@@ -176,7 +176,7 @@ const getCategories = () => {
 
 const getPostById = (id) => {
   return new Promise((resolve, reject) => {
-    Post.findOne({ id })
+    Post.findOne({ where: { id: Number(id) } })
       .then((post) => {
         resolve(post);
       })

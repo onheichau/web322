@@ -173,8 +173,10 @@ app.get("/blog/:id", async (req, res) => {
   }
 
   try {
+    console.log("the id receive is: ", req.params.id);
     // Obtain the post by "id"
     viewData.post = await blog.getPostById(req.params.id);
+    console.log(viewData.post);
   } catch (err) {
     viewData.message = "no results";
   }

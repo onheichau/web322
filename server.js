@@ -6,7 +6,7 @@
  *
  *  Name: On Hei Chau, Paul
  *  Student ID: 172917213
- *  Date:  7 July 2023
+ *  Date:  20 July 2023
  *
  *  Cyclic Web App URL: https://ill-calf-neckerchief.cyclic.app
  *
@@ -16,6 +16,8 @@
 
 const exphbs = require("express-handlebars");
 const blog = require("./blog-service");
+const clientSessions = require("client-sessions");
+const authData = require("./auth-service");
 const path = require("path");
 const stripJs = require("strip-js");
 const multer = require("multer");
@@ -60,8 +62,35 @@ app.engine(
         return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
       },
     },
-  })
+  }),
 );
+
+// Setup client-sessions
+app.use(
+  clientSessions({
+    cookieName: "clientSession_", // this is the object name that will be added to 'req'
+    secret: "607f1f77bcf86cd799439011", // this should be a long un-guessable string.
+    duration: 2 * 60 * 1000, // duration of the session in milliseconds (2 minutes)
+    activeDuration: 1000 * 60, // the session will be extended by this many ms each request (1 minute)
+    //httpOnly: true,
+  }),
+);
+
+// Parse application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: false }));
+
+app.use((req, res, next) => {
+  res.locals.session = req.clientSession_;
+  next();
+});
+
+const ensureLogin = (req, res, next) => {
+  if (!req.clientSession_ || !req.clientSession_.user) {
+    res.redirect("/login");
+  } else {
+    next();
+  }
+};
 
 // state the extension name
 app.set("view engine", ".hbs");
@@ -73,21 +102,76 @@ cloudinary.config({
   secure: true,
 });
 
-app.use(function (req, res, next) {
-  let route = req.path.substring(1);
-  app.locals.activeRoute =
-    "/" +
-    (isNaN(route.split("/")[1])
-      ? route.replace(/\/(?!.*)/, "")
-      : route.replace(/\/(.*)/, ""));
-  app.locals.viewingCategory = req.query.category;
-  next();
-});
-
 const HTTP_PORT = process.env.PORT || 8080;
 
 app.get("/", (req, res) => {
   res.redirect("/blog");
+});
+
+app.get("/login", (req, res) => {
+  res.render(path.join(__dirname, "views", "layouts", "login"));
+});
+
+app.post("/login", (req, res) => {
+  let userData = {
+    userName: req.body.userName,
+    password: req.body.password,
+    userAgent: req.get("User-Agent"),
+  };
+
+  authData
+    .checkUser(userData)
+    .then((user_) => {
+      req.clientSession_.user = {
+        userName: user_.userName,
+        email: user_.email,
+        loginHistory: user_.loginHistory,
+      };
+
+      res.redirect("/posts");
+    })
+    .catch((err) => {
+      res.render(path.join(__dirname, "views", "layouts", "login"), {
+        data: { errorMessage: err, userName: req.body.userName },
+      });
+    });
+});
+
+app.get("/register", (req, res) => {
+  res.render(path.join(__dirname, "views", "layouts", "register"));
+});
+
+app.post("/register", (req, res) => {
+  let userData = {
+    userName: req.body.userName,
+    password: req.body.password,
+    password2: req.body.password2,
+    email: req.body.email,
+  };
+
+  authData
+    .registerUser(userData)
+    .then(() => {
+      res.render(path.join(__dirname, "views", "layouts", "register"), {
+        data: { successMessage: "User created" },
+      });
+    })
+    .catch((err) => {
+      res.render(path.join(__dirname, "views", "layouts", "register"), {
+        data: { errorMessage: err, userName: req.body.userName },
+      });
+    });
+});
+
+app.get("/logout", (req, res) => {
+  req.clientSession_.reset();
+  res.redirect("/");
+});
+
+app.get("/userHistory", ensureLogin, (req, res) => {
+  res.render(path.join(__dirname, "views", "layouts", "userHistory"), {
+    data: { history: req.clientSession_.user.loginHistory },
+  });
 });
 
 app.get("/about", (req, res) => {
@@ -197,7 +281,7 @@ app.get("/blog/:id", async (req, res) => {
   });
 });
 
-app.get("/posts", (req, res) => {
+app.get("/posts", ensureLogin, (req, res) => {
   let postOperation;
   if (req.query.category) {
     postOperation = blog.getPostByCategory(req.query.category);
@@ -227,7 +311,7 @@ app.get("/posts", (req, res) => {
     });
 });
 
-app.get("/post/:id", (req, res) => {
+app.get("/post/:id", ensureLogin, (req, res) => {
   blog
     .getPostById(req.params.id)
     .then((post) => {
@@ -239,7 +323,7 @@ app.get("/post/:id", (req, res) => {
 });
 
 // routing of catagories
-app.get("/categories", (req, res) => {
+app.get("/categories", ensureLogin, (req, res) => {
   blog
     .getCategories()
     .then((categoryList) => {
@@ -258,11 +342,11 @@ app.get("/categories", (req, res) => {
     });
 });
 
-app.get("/categories/add", (req, res) => {
+app.get("/categories/add", ensureLogin, (req, res) => {
   res.render(path.join(__dirname, "views", "layouts", "addCategory"));
 });
 
-app.post("/categories/add", upload.none(), (req, res) => {
+app.post("/categories/add", ensureLogin, upload.none(), (req, res) => {
   blog
     .addCategroy(req.body.category)
     .then((msg) => {
@@ -274,7 +358,7 @@ app.post("/categories/add", upload.none(), (req, res) => {
     });
 });
 
-app.get("/categories/delete/:id", (req, res) => {
+app.get("/categories/delete/:id", ensureLogin, (req, res) => {
   blog
     .deleteCategoryById(req.params.id)
     .then(() => {
@@ -285,7 +369,7 @@ app.get("/categories/delete/:id", (req, res) => {
     });
 });
 
-app.get("/posts/add", (req, res) => {
+app.get("/posts/add", ensureLogin, (req, res) => {
   blog.getCategories().then((categoryList) => {
     console.log(categoryList);
     res.render(path.join(__dirname, "views", "layouts", "addPost.hbs"), {
@@ -295,56 +379,61 @@ app.get("/posts/add", (req, res) => {
 });
 
 // Form submission handling
-app.post("/posts/add", upload.single("featureImage"), (req, res) => {
-  if (req.file) {
-    let streamUpload = (req) => {
-      return new Promise((resolve, reject) => {
-        let stream = cloudinary.uploader.upload_stream((error, result) => {
-          if (result) {
-            resolve(result);
-          } else {
-            reject(error);
-          }
+app.post(
+  "/posts/add",
+  ensureLogin,
+  upload.single("featureImage"),
+  (req, res) => {
+    if (req.file) {
+      let streamUpload = (req) => {
+        return new Promise((resolve, reject) => {
+          let stream = cloudinary.uploader.upload_stream((error, result) => {
+            if (result) {
+              resolve(result);
+            } else {
+              reject(error);
+            }
+          });
+          streamifier.createReadStream(req.file.buffer).pipe(stream);
         });
-        streamifier.createReadStream(req.file.buffer).pipe(stream);
+      };
+
+      async function upload(req) {
+        let result = await streamUpload(req);
+        console.log(result);
+        return result;
+      }
+
+      upload(req).then((uploaded) => {
+        processPost(uploaded.url).then(() => {
+          res.redirect("/posts");
+        });
       });
-    };
-
-    async function upload(req) {
-      let result = await streamUpload(req);
-      console.log(result);
-      return result;
-    }
-
-    upload(req).then((uploaded) => {
-      processPost(uploaded.url).then(() => {
+    } else {
+      processPost("").then(() => {
         res.redirect("/posts");
       });
-    });
-  } else {
-    processPost("").then(() => {
-      res.redirect("/posts");
-    });
-  }
+    }
 
-  function processPost(imageUrl) {
-    return new Promise((resolve, reject) => {
-      const post = {};
-      post.body = req.body.body || null;
-      post.title = req.body.title || null;
-      post.featureImage = imageUrl || null;
-      post.postDate = new Date();
-      post.published = !!req.body.published;
-      post.categoryId = Number(req.body.category);
+    function processPost(imageUrl) {
+      return new Promise((resolve, reject) => {
+        const post = {};
+        post.body = req.body.body || null;
+        post.title = req.body.title || null;
+        post.featureImage = imageUrl || null;
+        post.postDate = new Date();
+        post.published = !!req.body.published;
+        post.categoryId = Number(req.body.category);
 
-      blog.addPost(post).then((post) => {
-        resolve(post);
+        blog.addPost(post).then((post) => {
+          resolve(post);
+        });
       });
-    });
-  }
-});
+    }
+  },
+);
 
-app.get("/posts/delete/:id", (req, res) => {
+app.get("/posts/delete/:id", ensureLogin, (req, res) => {
   blog
     .deletePostById(req.params.id)
     .then(() => {
@@ -363,8 +452,11 @@ app.use((req, res) => {
 blog
   .initialize()
   .then(() => {
+    authData.initialize();
+  })
+  .then(() => {
     app.listen(HTTP_PORT, () => {
-      console.log("server start");
+      console.log(`app lisitening on : ${HTTP_PORT}`);
     });
   })
   .catch((err) => {

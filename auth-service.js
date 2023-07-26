@@ -56,8 +56,6 @@ const registerUser = (userData) => {
 
 const checkUser = (userData) => {
   return new Promise((resolve, reject) => {
-    console.log("received login request, in auth-data function : ", userData);
-
     User.findOne({ userName: userData.userName })
       .then((user) => {
         if (!user) {
@@ -85,7 +83,6 @@ const checkUser = (userData) => {
                 )
                   .then(() => {
                     user.loginHistory.push(loginRecord);
-                    console.log("successfully reslove");
                     resolve(user);
                   })
                   .catch((err) => {

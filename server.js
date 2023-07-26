@@ -84,6 +84,8 @@ app.use((req, res, next) => {
 });
 
 const ensureLogin = (req, res, next) => {
+  console.log("in ensure login");
+  console.log(req.session); // <-- add this line
   if (!req.session.user) {
     res.redirect("/login");
   } else {

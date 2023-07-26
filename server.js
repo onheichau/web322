@@ -68,24 +68,23 @@ app.engine(
 // Setup client-sessions
 app.use(
   clientSessions({
-    cookieName: "clientSession_", // this is the object name that will be added to 'req'
+    cookieName: "session", // this is the object name that will be added to 'req'
     secret: "607f1f77bcf86cd799439011", // this should be a long un-guessable string.
     duration: 2 * 60 * 1000, // duration of the session in milliseconds (2 minutes)
     activeDuration: 1000 * 60, // the session will be extended by this many ms each request (1 minute)
-    //httpOnly: true,
   }),
 );
 
 // Parse application/x-www-form-urlencoded
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
-  res.locals.session = req.clientSession_;
+  res.locals.session = req.session;
   next();
 });
 
 const ensureLogin = (req, res, next) => {
-  if (!req.clientSession_ || !req.clientSession_.user) {
+  if (!req.session.user) {
     res.redirect("/login");
   } else {
     next();
@@ -113,7 +112,7 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  let userData = {
+  const userData = {
     userName: req.body.userName,
     password: req.body.password,
     userAgent: req.get("User-Agent"),
@@ -121,11 +120,11 @@ app.post("/login", (req, res) => {
 
   authData
     .checkUser(userData)
-    .then((user_) => {
-      req.clientSession_.user = {
-        userName: user_.userName,
-        email: user_.email,
-        loginHistory: user_.loginHistory,
+    .then((_user) => {
+      req.session.user = {
+        userName: _user.userName,
+        email: _user.email,
+        loginHistory: _user.loginHistory,
       };
 
       res.redirect("/posts");
@@ -164,13 +163,13 @@ app.post("/register", (req, res) => {
 });
 
 app.get("/logout", (req, res) => {
-  req.clientSession_.reset();
+  req.session.reset();
   res.redirect("/");
 });
 
 app.get("/userHistory", ensureLogin, (req, res) => {
   res.render(path.join(__dirname, "views", "layouts", "userHistory"), {
-    data: { history: req.clientSession_.user.loginHistory },
+    data: { history: req.session.user.loginHistory },
   });
 });
 
@@ -311,17 +310,6 @@ app.get("/posts", ensureLogin, (req, res) => {
     });
 });
 
-app.get("/post/:id", ensureLogin, (req, res) => {
-  blog
-    .getPostById(req.params.id)
-    .then((post) => {
-      res.json(post);
-    })
-    .catch((err) => {
-      res.send({ message: err });
-    });
-});
-
 // routing of catagories
 app.get("/categories", ensureLogin, (req, res) => {
   blog
@@ -441,6 +429,17 @@ app.get("/posts/delete/:id", ensureLogin, (req, res) => {
     })
     .catch(() => {
       res.status(500).send("Unable to Remove Post / Post not found");
+    });
+});
+
+app.get("/post/:id", ensureLogin, (req, res) => {
+  blog
+    .getPostById(req.params.id)
+    .then((post) => {
+      res.json(post);
+    })
+    .catch((err) => {
+      res.send({ message: err });
     });
 });
 

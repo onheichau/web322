@@ -72,9 +72,6 @@ cloudinary.config({
   secure: true,
 });
 
-// Parse application/x-www-form-urlencoded
-// app.use(express.urlencoded({ extended: false }));
-
 // Setup client-sessions
 app.use(
   clientSessions({
@@ -109,11 +106,11 @@ const HTTP_PORT = process.env.PORT || 8080;
 app.use(express.static("public"));
 app.use(
   express.urlencoded({
-    extended: false,
+    extended: true,
   }),
 );
 
-app.use(function (req, res, next) {
+app.use((req, res, next) => {
   let route = req.path.substring(1);
   app.locals.activeRoute =
     "/" +
@@ -142,7 +139,7 @@ app.post("/login", (req, res) => {
       req.session.user = {
         userName: _user.userName,
         email: _user.email,
-        loginHistory: _user.loginHistory,
+        loginHistory: _user.loginHistory, // dangerous , 4096!!!!!!!!!!!
       };
 
       console.log("\ncheck user resloved.....\n");
@@ -170,6 +167,9 @@ app.post("/register", (req, res) => {
     password2: req.body.password2,
     email: req.body.email,
   };
+
+  console.log(req.body);
+  console.log(userData);
 
   authData
     .registerUser(userData)
@@ -252,57 +252,6 @@ app.get("/blog", async (req, res) => {
   });
 });
 
-app.get("/blog/:id", async (req, res) => {
-  // Declare an object to store properties for the view
-  let viewData = {};
-
-  try {
-    // declare empty array to hold "post" objects
-    let posts = [];
-
-    // if there's a "category" query, filter the returned posts by category
-    if (req.query.category) {
-      // Obtain the published "posts" by category
-      posts = await blog.getPublishedPostsByCategory(req.query.category);
-    } else {
-      // Obtain the published "posts"
-      posts = await blog.getPublishedPosts();
-    }
-
-    // sort the published posts by postDate
-    posts.sort((a, b) => new Date(b.postDate) - new Date(a.postDate));
-
-    // store the "posts" and "post" data in the viewData object (to be passed to the view)
-    viewData.posts = posts;
-  } catch (err) {
-    viewData.message = "no results";
-  }
-
-  try {
-    console.log("the id receive is: ", req.params.id);
-    // Obtain the post by "id"
-    viewData.post = await blog.getPostById(req.params.id);
-    console.log(viewData.post);
-  } catch (err) {
-    viewData.message = "no results";
-  }
-
-  try {
-    // Obtain the full list of "categories"
-    let categories = await blog.getCategories();
-
-    // store the "categories" data in the viewData object (to be passed to the view)
-    viewData.categories = categories;
-  } catch (err) {
-    viewData.categoriesMessage = "no results";
-  }
-
-  // render the "blog" view with all of the data (viewData)
-  res.render(path.join(__dirname, "views", "layouts", "blog"), {
-    data: viewData,
-  });
-});
-
 app.get("/posts", ensureLogin, (req, res) => {
   let postOperation;
   if (req.query.category) {
@@ -357,7 +306,7 @@ app.get("/categories/add", ensureLogin, (req, res) => {
   res.render(path.join(__dirname, "views", "layouts", "addCategory"));
 });
 
-app.post("/categories/add", ensureLogin, upload.none(), (req, res) => {
+app.post("/categories/add", ensureLogin, (req, res) => {
   blog
     .addCategroy(req.body.category)
     .then((msg) => {
@@ -366,17 +315,6 @@ app.post("/categories/add", ensureLogin, upload.none(), (req, res) => {
     })
     .catch((err) => {
       res.status(505).send({ message: err });
-    });
-});
-
-app.get("/categories/delete/:id", ensureLogin, (req, res) => {
-  blog
-    .deleteCategoryById(req.params.id)
-    .then(() => {
-      res.redirect("/categories");
-    })
-    .catch(() => {
-      res.status(500).send("Unable to Remove Category / Category not found");
     });
 });
 
@@ -455,15 +393,70 @@ app.get("/posts/delete/:id", ensureLogin, (req, res) => {
     });
 });
 
-app.get("/post/:id", ensureLogin, (req, res) => {
+app.get("/categories/delete/:id", ensureLogin, (req, res) => {
   blog
-    .getPostById(req.params.id)
-    .then((post) => {
-      res.json(post);
+    .deleteCategoryById(req.params.id)
+    .then(() => {
+      res.redirect("/categories");
     })
-    .catch((err) => {
-      res.send({ message: err });
+    .catch(() => {
+      res.status(500).send("Unable to Remove Category / Category not found");
     });
+});
+
+app.get("/blog/:id", async (req, res) => {
+  // Declare an object to store properties for the view
+  let viewData = {};
+
+  try {
+    // declare empty array to hold "post" objects
+    let posts = [];
+
+    // if there's a "category" query, filter the returned posts by category
+    if (req.query.category) {
+      // Obtain the published "posts" by category
+      posts = await blog.getPublishedPostsByCategory(req.query.category);
+    } else {
+      // Obtain the published "posts"
+      posts = await blog.getPublishedPosts();
+    }
+
+    // sort the published posts by postDate
+    posts.sort((a, b) => new Date(b.postDate) - new Date(a.postDate));
+
+    // store the "posts" and "post" data in the viewData object (to be passed to the view)
+    viewData.posts = posts;
+  } catch (err) {
+    viewData.message = "no results";
+  }
+
+  try {
+    console.log("the id receive is: ", req.params.id);
+    // Obtain the post by "id"
+    viewData.post = await blog.getPostById(req.params.id);
+    console.log(viewData.post);
+  } catch (err) {
+    viewData.message = "no results";
+  }
+
+  try {
+    // Obtain the full list of "categories"
+    let categories = await blog.getCategories();
+
+    // store the "categories" data in the viewData object (to be passed to the view)
+    viewData.categories = categories;
+  } catch (err) {
+    viewData.categoriesMessage = "no results";
+  }
+
+  // render the "blog" view with all of the data (viewData)
+  res.render(path.join(__dirname, "views", "layouts", "blog"), {
+    data: viewData,
+  });
+});
+
+app.get("/post/:id", ensureLogin, (req, res) => {
+  res.redirect(`/blog/${req.params.id}`);
 });
 
 // 404 handling

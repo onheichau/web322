@@ -85,6 +85,7 @@ const checkUser = (userData) => {
                 )
                   .then(() => {
                     user.loginHistory.push(loginRecord);
+                    console.log("successfully reslove");
                     resolve(user);
                   })
                   .catch((err) => {

@@ -1,6 +1,6 @@
 <div class="col-md-12">
-  <h2>{{clientSession_.user.userName}}
-    ({{clientSession_.user.email}}) History</h2>
+  <h2>{{session.user.userName}}
+    ({{session.user.email}}) History</h2>
   <hr />
   <div class="table-responsive">
     <table class="table">
@@ -11,8 +11,8 @@
         </tr>
       </thead>
       <tbody>
-        {{#if clientSession_.user.loginHistory}}
-          {{#each clientSession_.user.loginHistory}}
+        {{#if session.user.loginHistory}}
+          {{#each session.user.loginHistory}}
             <tr>
               <td>{{dateTime}}</td>
               <td>{{userAgent}}</td>

@@ -65,37 +65,6 @@ app.engine(
   }),
 );
 
-// Setup client-sessions
-app.use(
-  clientSessions({
-    cookieName: "session", // this is the object name that will be added to 'req'
-    secret: "some_String", // this should be a long un-guessable string.
-    duration: 2 * 60 * 1000 * 10, // duration of the session in milliseconds (2 minutes)
-    activeDuration: 1000 * 60 * 10, // the session will be extended by this many ms each request (1 minute)
-  }),
-);
-
-// Parse application/x-www-form-urlencoded
-app.use(express.urlencoded({ extended: true }));
-
-app.use((req, res, next) => {
-  res.locals.session = req.session;
-  next();
-});
-
-const ensureLogin = (req, res, next) => {
-  console.log("in ensure login");
-  console.log(req.session);
-  if (!req.session.user) {
-    res.redirect("/login");
-  } else {
-    next();
-  }
-};
-
-// state the extension name
-app.set("view engine", ".hbs");
-
 cloudinary.config({
   cloud_name: "dmdu09gw6",
   api_key: "961929566237721",
@@ -103,7 +72,57 @@ cloudinary.config({
   secure: true,
 });
 
+// Parse application/x-www-form-urlencoded
+// app.use(express.urlencoded({ extended: false }));
+
+// Setup client-sessions
+app.use(
+  clientSessions({
+    cookieName: "session",
+    secret: "week10example_web322",
+    duration: 2 * 60 * 1000,
+    activeDuration: 1000 * 60,
+  }),
+);
+
+const ensureLogin = (req, res, next) => {
+  console.log("\nin ensure login\n");
+  console.log("the conetent of req.session is : ", req.session);
+  if (!req.session.user) {
+    console.log("\nno user data found\n");
+    res.redirect("/login");
+  } else {
+    next();
+  }
+};
+
+app.use((req, res, next) => {
+  res.locals.session = req.session;
+  next();
+});
+
+// state the extension name
+app.set("view engine", ".hbs");
+
 const HTTP_PORT = process.env.PORT || 8080;
+
+app.use(express.static("public"));
+app.use(
+  express.urlencoded({
+    extended: false,
+  }),
+);
+
+app.use(function (req, res, next) {
+  let route = req.path.substring(1);
+  app.locals.activeRoute =
+    "/" +
+    (isNaN(route.split("/")[1])
+      ? route.replace(/\/(?!.*)/, "")
+      : route.replace(/\/(.*)/, ""));
+  app.locals.viewingCategory = req.query.category;
+  next();
+});
 
 app.get("/", (req, res) => {
   res.redirect("/blog");
@@ -114,14 +133,11 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const userData = {
-    userName: req.body.userName,
-    password: req.body.password,
-    userAgent: req.get("User-Agent"),
-  };
+  console.log("\nrecieved login requrest\n");
+  req.body.userAgent = req.get("User-Agent");
 
   authData
-    .checkUser(userData)
+    .checkUser(req.body)
     .then((_user) => {
       req.session.user = {
         userName: _user.userName,
@@ -129,6 +145,11 @@ app.post("/login", (req, res) => {
         loginHistory: _user.loginHistory,
       };
 
+      console.log("\ncheck user resloved.....\n");
+      console.log(
+        `\n\t the content of req.session.user.userName after checkUser resloved is: ${req.session.user.userName}\n`,
+      );
+      console.log("\nredirect to /posts now...\n");
       res.redirect("/posts");
     })
     .catch((err) => {

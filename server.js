@@ -69,9 +69,9 @@ app.engine(
 app.use(
   clientSessions({
     cookieName: "session", // this is the object name that will be added to 'req'
-    secret: "607f1f77bcf86cd799439011", // this should be a long un-guessable string.
-    duration: 2 * 60 * 1000, // duration of the session in milliseconds (2 minutes)
-    activeDuration: 1000 * 60, // the session will be extended by this many ms each request (1 minute)
+    secret: "some_String", // this should be a long un-guessable string.
+    duration: 2 * 60 * 1000 * 10, // duration of the session in milliseconds (2 minutes)
+    activeDuration: 1000 * 60 * 10, // the session will be extended by this many ms each request (1 minute)
   }),
 );
 
@@ -85,7 +85,7 @@ app.use((req, res, next) => {
 
 const ensureLogin = (req, res, next) => {
   console.log("in ensure login");
-  console.log(req.session); // <-- add this line
+  console.log(req.session);
   if (!req.session.user) {
     res.redirect("/login");
   } else {

@@ -68,7 +68,7 @@ const checkUser = (userData) => {
                 reject(`Incorrect Password for user: ${userData.userName}`);
               } else {
                 const loginRecord = {
-                  dateTime: new Date().toString(),
+                  dateTime: new Date(), // accormodate type
                   userAgent: userData.userAgent,
                 };
                 // update the documents

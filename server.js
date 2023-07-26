@@ -83,10 +83,7 @@ app.use(
 );
 
 const ensureLogin = (req, res, next) => {
-  console.log("\nin ensure login\n");
-  console.log("the conetent of req.session is : ", req.session);
   if (!req.session.user) {
-    console.log("\nno user data found\n");
     res.redirect("/login");
   } else {
     next();
@@ -130,7 +127,6 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  console.log("\nrecieved login requrest\n");
   req.body.userAgent = req.get("User-Agent");
 
   authData
@@ -142,11 +138,6 @@ app.post("/login", (req, res) => {
         loginHistory: _user.loginHistory, // dangerous , 4096!!!!!!!!!!!
       };
 
-      console.log("\ncheck user resloved.....\n");
-      console.log(
-        `\n\t the content of req.session.user.userName after checkUser resloved is: ${req.session.user.userName}\n`,
-      );
-      console.log("\nredirect to /posts now...\n");
       res.redirect("/posts");
     })
     .catch((err) => {
@@ -161,18 +152,8 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  let userData = {
-    userName: req.body.userName,
-    password: req.body.password,
-    password2: req.body.password2,
-    email: req.body.email,
-  };
-
-  console.log(req.body);
-  console.log(userData);
-
   authData
-    .registerUser(userData)
+    .registerUser(req.body)
     .then(() => {
       res.render(path.join(__dirname, "views", "layouts", "register"), {
         data: { successMessage: "User created" },
@@ -310,7 +291,6 @@ app.post("/categories/add", ensureLogin, (req, res) => {
   blog
     .addCategroy(req.body.category)
     .then((msg) => {
-      console.log(msg);
       res.redirect("/categories");
     })
     .catch((err) => {
@@ -320,7 +300,6 @@ app.post("/categories/add", ensureLogin, (req, res) => {
 
 app.get("/posts/add", ensureLogin, (req, res) => {
   blog.getCategories().then((categoryList) => {
-    console.log(categoryList);
     res.render(path.join(__dirname, "views", "layouts", "addPost.hbs"), {
       data: categoryList,
     });
@@ -349,7 +328,6 @@ app.post(
 
       async function upload(req) {
         let result = await streamUpload(req);
-        console.log(result);
         return result;
       }
 
@@ -431,10 +409,8 @@ app.get("/blog/:id", async (req, res) => {
   }
 
   try {
-    console.log("the id receive is: ", req.params.id);
     // Obtain the post by "id"
     viewData.post = await blog.getPostById(req.params.id);
-    console.log(viewData.post);
   } catch (err) {
     viewData.message = "no results";
   }

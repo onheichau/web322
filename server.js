@@ -14,77 +14,77 @@
  *
  ********************************************************************************/
 
-const exphbs = require("express-handlebars");
-const blog = require("./blog-service");
-const clientSessions = require("client-sessions");
-const authData = require("./auth-service");
-const path = require("path");
-const stripJs = require("strip-js");
-const multer = require("multer");
-const cloudinary = require("cloudinary").v2;
-const streamifier = require("streamifier");
-const express = require("express");
+const exphbs = require('express-handlebars');
+const blog = require('./blog-service');
+const clientSessions = require('client-sessions');
+const authData = require('./auth-service');
+const path = require('path');
+const stripJs = require('strip-js');
+const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+const streamifier = require('streamifier');
+const express = require('express');
 const app = express();
 const upload = multer(); // no { storage: storage } since we are not using disk storage
 
 app.engine(
-  ".hbs",
+  '.hbs',
   exphbs.engine({
-    extname: ".hbs",
+    extname: '.hbs',
     helpers: {
       navLink: (url, options) => {
         return (
-          "<li" +
-          (url == app.locals.activeRoute ? ' class="active" ' : "") +
+          '<li' +
+          (url == app.locals.activeRoute ? ' class="active" ' : '') +
           '><a href="' +
           url +
           '">' +
           options.fn(this) +
-          "</a></li>"
+          '</a></li>'
         );
       },
       equal: (lvalue, rvalue, options) => {
         if (arguments.length < 3)
-          throw new Error("Handlebars Helper equal needs 2 parameters");
+          throw new Error('Handlebars Helper equal needs 2 parameters');
         if (lvalue != rvalue) {
           return options.inverse(this);
         } else {
           return options.fn(this);
         }
       },
-      safeHTML: (context) => {
+      safeHTML: context => {
         return stripJs(context);
       },
       formatDate: function (dateObj) {
         let year = dateObj.getFullYear();
         let month = (dateObj.getMonth() + 1).toString();
         let day = dateObj.getDate().toString();
-        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
       },
     },
-  }),
+  })
 );
 
 cloudinary.config({
-  cloud_name: "dmdu09gw6",
-  api_key: "961929566237721",
-  api_secret: "xh_xCNtcxWxGu8xydW3-euvyd7U",
+  cloud_name: 'dmdu09gw6',
+  api_key: '961929566237721',
+  api_secret: 'xh_xCNtcxWxGu8xydW3-euvyd7U',
   secure: true,
 });
 
 // Setup client-sessions
 app.use(
   clientSessions({
-    cookieName: "session",
-    secret: "week10example_web322",
+    cookieName: 'session',
+    secret: 'week10example_web322',
     duration: 2 * 60 * 1000,
     activeDuration: 1000 * 60,
-  }),
+  })
 );
 
 const ensureLogin = (req, res, next) => {
   if (!req.session.user) {
-    res.redirect("/login");
+    res.redirect('/login');
   } else {
     next();
   }
@@ -96,93 +96,93 @@ app.use((req, res, next) => {
 });
 
 // state the extension name
-app.set("view engine", ".hbs");
+app.set('view engine', '.hbs');
 
 const HTTP_PORT = process.env.PORT || 8080;
 
-app.use(express.static("public"));
+app.use(express.static('public'));
 app.use(
   express.urlencoded({
     extended: true,
-  }),
+  })
 );
 
 app.use((req, res, next) => {
   let route = req.path.substring(1);
   app.locals.activeRoute =
-    "/" +
-    (isNaN(route.split("/")[1])
-      ? route.replace(/\/(?!.*)/, "")
-      : route.replace(/\/(.*)/, ""));
+    '/' +
+    (isNaN(route.split('/')[1])
+      ? route.replace(/\/(?!.*)/, '')
+      : route.replace(/\/(.*)/, ''));
   app.locals.viewingCategory = req.query.category;
   next();
 });
 
-app.get("/", (req, res) => {
-  res.redirect("/blog");
+app.get('/', (req, res) => {
+  res.redirect('/blog');
 });
 
-app.get("/login", (req, res) => {
-  res.render(path.join(__dirname, "views", "layouts", "login"));
+app.get('/login', (req, res) => {
+  res.render(path.join(__dirname, 'views', 'layouts', 'login'));
 });
 
-app.post("/login", (req, res) => {
-  req.body.userAgent = req.get("User-Agent");
+app.post('/login', (req, res) => {
+  req.body.userAgent = req.get('User-Agent');
 
   authData
     .checkUser(req.body)
-    .then((_user) => {
+    .then(_user => {
       req.session.user = {
         userName: _user.userName,
         email: _user.email,
         loginHistory: _user.loginHistory, // dangerous , 4096!!!!!!!!!!!
       };
 
-      res.redirect("/posts");
+      res.redirect('/posts');
     })
-    .catch((err) => {
-      res.render(path.join(__dirname, "views", "layouts", "login"), {
+    .catch(err => {
+      res.render(path.join(__dirname, 'views', 'layouts', 'login'), {
         data: { errorMessage: err, userName: req.body.userName },
       });
     });
 });
 
-app.get("/register", (req, res) => {
-  res.render(path.join(__dirname, "views", "layouts", "register"));
+app.get('/register', (req, res) => {
+  res.render(path.join(__dirname, 'views', 'layouts', 'register'));
 });
 
-app.post("/register", (req, res) => {
+app.post('/register', (req, res) => {
   authData
     .registerUser(req.body)
     .then(() => {
-      res.render(path.join(__dirname, "views", "layouts", "register"), {
-        data: { successMessage: "User created" },
+      res.render(path.join(__dirname, 'views', 'layouts', 'register'), {
+        data: { successMessage: 'User created' },
       });
     })
-    .catch((err) => {
-      res.render(path.join(__dirname, "views", "layouts", "register"), {
+    .catch(err => {
+      res.render(path.join(__dirname, 'views', 'layouts', 'register'), {
         data: { errorMessage: err, userName: req.body.userName },
       });
     });
 });
 
-app.get("/logout", (req, res) => {
+app.get('/logout', (req, res) => {
   req.session.reset();
-  res.redirect("/");
+  res.redirect('/');
 });
 
-app.get("/userHistory", ensureLogin, (req, res) => {
-  res.render(path.join(__dirname, "views", "layouts", "userHistory"), {
+app.get('/userHistory', ensureLogin, (req, res) => {
+  res.render(path.join(__dirname, 'views', 'layouts', 'userHistory'), {
     data: { history: req.session.user.loginHistory },
   });
 });
 
-app.get("/about", (req, res) => {
-  res.render(path.join(__dirname, "views", "layouts", "about"));
+app.get('/about', (req, res) => {
+  res.render(path.join(__dirname, 'views', 'layouts', 'about'));
 });
 
 // routing of blog button [published Post Only]
-app.get("/blog", async (req, res) => {
+app.get('/blog', async (req, res) => {
   // Declare an object to store properties for the view
   let viewData = {};
 
@@ -208,13 +208,13 @@ app.get("/blog", async (req, res) => {
     // store the "posts" and "post" data in the viewData object (to be passed to the view)
     viewData.posts = posts;
 
-    posts.forEach((po) => {
+    posts.forEach(po => {
       po.postDate = po.postDate.toISOString().slice(0, 10);
     });
 
     viewData.post = post;
   } catch (err) {
-    viewData.message = "no results";
+    viewData.message = 'no results';
   }
 
   try {
@@ -224,16 +224,16 @@ app.get("/blog", async (req, res) => {
     // store the "categories" data in the viewData object (to be passed to the view)
     viewData.categories = categories;
   } catch (err) {
-    viewData.categoriesMessage = "no results";
+    viewData.categoriesMessage = 'no results';
   }
 
   // render the "blog" view with all of the data (viewData)
-  res.render(path.join(__dirname, "views", "layouts", "blog"), {
+  res.render(path.join(__dirname, 'views', 'layouts', 'blog'), {
     data: viewData,
   });
 });
 
-app.get("/posts", ensureLogin, (req, res) => {
+app.get('/posts', ensureLogin, (req, res) => {
   let postOperation;
   if (req.query.category) {
     postOperation = blog.getPostByCategory(req.query.category);
@@ -244,63 +244,63 @@ app.get("/posts", ensureLogin, (req, res) => {
   }
 
   postOperation
-    .then((posts) => {
+    .then(posts => {
       if (posts.length) {
-        posts.forEach((post) => {
+        posts.forEach(post => {
           post.postDate = post.postDate.toISOString().slice(0, 10);
         });
-        res.render(path.join(__dirname, "views", "layouts", "posts"), {
+        res.render(path.join(__dirname, 'views', 'layouts', 'posts'), {
           posts,
         });
       } else {
-        res.render(path.join(__dirname, "views", "layouts", "posts"), {
-          message: "no results",
+        res.render(path.join(__dirname, 'views', 'layouts', 'posts'), {
+          message: 'no results',
         });
       }
     })
-    .catch((err) => {
+    .catch(err => {
       res.send({ message: err });
     });
 });
 
 // routing of catagories
-app.get("/categories", ensureLogin, (req, res) => {
+app.get('/categories', ensureLogin, (req, res) => {
   blog
     .getCategories()
-    .then((categoryList) => {
+    .then(categoryList => {
       categoryList.length
-        ? res.render(path.join(__dirname, "views", "layouts", "categories"), {
+        ? res.render(path.join(__dirname, 'views', 'layouts', 'categories'), {
             data: categoryList,
           })
-        : res.render(path.join(__dirname, "views", "layouts", "categories"), {
-            message: "no results",
+        : res.render(path.join(__dirname, 'views', 'layouts', 'categories'), {
+            message: 'no results',
           });
     })
-    .catch((err) => {
-      res.render(path.join(__dirname, "views", "layouts", "category"), {
+    .catch(err => {
+      res.render(path.join(__dirname, 'views', 'layouts', 'category'), {
         message: err,
       });
     });
 });
 
-app.get("/categories/add", ensureLogin, (req, res) => {
-  res.render(path.join(__dirname, "views", "layouts", "addCategory"));
+app.get('/categories/add', ensureLogin, (req, res) => {
+  res.render(path.join(__dirname, 'views', 'layouts', 'addCategory'));
 });
 
-app.post("/categories/add", ensureLogin, (req, res) => {
+app.post('/categories/add', ensureLogin, (req, res) => {
   blog
     .addCategroy(req.body.category)
-    .then((msg) => {
-      res.redirect("/categories");
+    .then(msg => {
+      res.redirect('/categories');
     })
-    .catch((err) => {
+    .catch(err => {
       res.status(505).send({ message: err });
     });
 });
 
-app.get("/posts/add", ensureLogin, (req, res) => {
-  blog.getCategories().then((categoryList) => {
-    res.render(path.join(__dirname, "views", "layouts", "addPost.hbs"), {
+app.get('/posts/add', ensureLogin, (req, res) => {
+  blog.getCategories().then(categoryList => {
+    res.render(path.join(__dirname, 'views', 'layouts', 'addPost.hbs'), {
       data: categoryList,
     });
   });
@@ -308,12 +308,12 @@ app.get("/posts/add", ensureLogin, (req, res) => {
 
 // Form submission handling
 app.post(
-  "/posts/add",
+  '/posts/add',
   ensureLogin,
-  upload.single("featureImage"),
+  upload.single('featureImage'),
   (req, res) => {
     if (req.file) {
-      let streamUpload = (req) => {
+      let streamUpload = req => {
         return new Promise((resolve, reject) => {
           let stream = cloudinary.uploader.upload_stream((error, result) => {
             if (result) {
@@ -331,14 +331,14 @@ app.post(
         return result;
       }
 
-      upload(req).then((uploaded) => {
+      upload(req).then(uploaded => {
         processPost(uploaded.url).then(() => {
-          res.redirect("/posts");
+          res.redirect('/posts');
         });
       });
     } else {
-      processPost("").then(() => {
-        res.redirect("/posts");
+      processPost('').then(() => {
+        res.redirect('/posts');
       });
     }
 
@@ -352,37 +352,37 @@ app.post(
         post.published = !!req.body.published;
         post.categoryId = Number(req.body.category);
 
-        blog.addPost(post).then((post) => {
+        blog.addPost(post).then(post => {
           resolve(post);
         });
       });
     }
-  },
+  }
 );
 
-app.get("/posts/delete/:id", ensureLogin, (req, res) => {
+app.get('/posts/delete/:id', ensureLogin, (req, res) => {
   blog
     .deletePostById(req.params.id)
     .then(() => {
-      res.redirect("/posts");
+      res.redirect('/posts');
     })
     .catch(() => {
-      res.status(500).send("Unable to Remove Post / Post not found");
+      res.status(500).send('Unable to Remove Post / Post not found');
     });
 });
 
-app.get("/categories/delete/:id", ensureLogin, (req, res) => {
+app.get('/categories/delete/:id', ensureLogin, (req, res) => {
   blog
     .deleteCategoryById(req.params.id)
     .then(() => {
-      res.redirect("/categories");
+      res.redirect('/categories');
     })
     .catch(() => {
-      res.status(500).send("Unable to Remove Category / Category not found");
+      res.status(500).send('Unable to Remove Category / Category not found');
     });
 });
 
-app.get("/blog/:id", async (req, res) => {
+app.get('/blog/:id', async (req, res) => {
   // Declare an object to store properties for the view
   let viewData = {};
 
@@ -405,14 +405,14 @@ app.get("/blog/:id", async (req, res) => {
     // store the "posts" and "post" data in the viewData object (to be passed to the view)
     viewData.posts = posts;
   } catch (err) {
-    viewData.message = "no results";
+    viewData.message = 'no results';
   }
 
   try {
     // Obtain the post by "id"
     viewData.post = await blog.getPostById(req.params.id);
   } catch (err) {
-    viewData.message = "no results";
+    viewData.message = 'no results';
   }
 
   try {
@@ -422,22 +422,22 @@ app.get("/blog/:id", async (req, res) => {
     // store the "categories" data in the viewData object (to be passed to the view)
     viewData.categories = categories;
   } catch (err) {
-    viewData.categoriesMessage = "no results";
+    viewData.categoriesMessage = 'no results';
   }
 
   // render the "blog" view with all of the data (viewData)
-  res.render(path.join(__dirname, "views", "layouts", "blog"), {
+  res.render(path.join(__dirname, 'views', 'layouts', 'blog'), {
     data: viewData,
   });
 });
 
-app.get("/post/:id", ensureLogin, (req, res) => {
+app.get('/post/:id', ensureLogin, (req, res) => {
   res.redirect(`/blog/${req.params.id}`);
 });
 
 // 404 handling
 app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, "views", "notFound.html"));
+  res.status(404).sendFile(path.join(__dirname, 'views', 'notFound.html'));
 });
 
 blog
@@ -450,6 +450,6 @@ blog
       console.log(`app lisitening on : ${HTTP_PORT}`);
     });
   })
-  .catch((err) => {
+  .catch(err => {
     console.log(err);
   });

@@ -127,7 +127,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/test', (req, res) => {
-  res.json({ text: 'hello' });
+  res.json({ text: 'Weather Report is op', date: new Date.now() });
 });
 
 app.get('/login', (req, res) => {

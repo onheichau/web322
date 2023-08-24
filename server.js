@@ -27,6 +27,7 @@ const express = require('express');
 const app = express();
 const upload = multer(); // no { storage: storage } since we are not using disk storage
 const cors = require('cors');
+const { JSON } = require('sequelize');
 
 app.engine(
   '.hbs',
@@ -126,7 +127,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/test', (req, res) => {
-  res.send('hello');
+  res.json({ text: 'hello' });
 });
 
 app.get('/login', (req, res) => {

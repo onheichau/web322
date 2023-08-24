@@ -122,6 +122,10 @@ app.get('/', (req, res) => {
   res.redirect('/blog');
 });
 
+app.get('/test', (req, res) => {
+  res.send('hello');
+});
+
 app.get('/login', (req, res) => {
   res.render(path.join(__dirname, 'views', 'layouts', 'login'));
 });

@@ -26,6 +26,7 @@ const streamifier = require('streamifier');
 const express = require('express');
 const app = express();
 const upload = multer(); // no { storage: storage } since we are not using disk storage
+const cors = require('cors');
 
 app.engine(
   '.hbs',
@@ -71,6 +72,8 @@ cloudinary.config({
   api_secret: 'xh_xCNtcxWxGu8xydW3-euvyd7U',
   secure: true,
 });
+
+app.use(cors());
 
 // Setup client-sessions
 app.use(
